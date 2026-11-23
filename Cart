@@ -1,0 +1,117 @@
+# =====================================================================
+# 1. CART MANAGEMENT FUNCTIONS
+# =====================================================================
+def add_to_cart(menu, cart, item_id, qty=1):
+    """
+    Validates that item_id exists in menu and is in_stock.
+    Updates the cart dictionary using .get().
+    """
+    item_id = item_id.strip().upper()
+
+    if item_id not in menu:
+        print(f"Error: Item ID '{item_id}' does not exist.")
+        return False
+
+    if not menu[item_id]["in_stock"]:
+        print(f"Sorry, '{menu[item_id]['name']}' is out of stock.")
+        return False
+
+    if qty <= 0:
+        print("Quantity must be at least 1.")
+        return False
+
+    cart[item_id] = cart.get(item_id, 0) + qty
+    print(f"Added {qty}x {menu[item_id]['name']} to your cart.")
+    return True
+
+
+def update_cart_quantity(menu, cart, item_id, new_qty):
+    """
+    Updates an item's quantity in the cart using an if-check.
+    Uses 'del' to remove the item if new_qty <= 0 or if it went out of stock.
+    """
+    item_id = item_id.strip().upper()
+
+    if item_id not in cart:
+        print(f"Item ID '{item_id}' is not in your cart.")
+        return False
+
+    # If the item became out of stock, cancel/remove it from the cart
+    if not menu[item_id]["in_stock"]:
+        print(f"'{menu[item_id]['name']}' is now out of stock and was removed.")
+        del cart[item_id]
+        return False
+
+    if new_qty <= 0:
+        removed_name = menu[item_id]["name"]
+        del cart[item_id]
+        print(f"Removed '{removed_name}' from your cart.")
+    else:
+        cart[item_id] = new_qty
+        print(f"Updated '{menu[item_id]['name']}' quantity to {new_qty}.")
+
+    return True
+
+
+def subtract_from_cart(menu, cart, item_id, qty_to_subtract=1):
+    """
+    Subtracts a quantity from an item in the cart, removing the item
+    completely via 'del' if the remaining quantity reaches 0 or below.
+    """
+    item_id = item_id.strip().upper()
+
+    if item_id not in cart:
+        print(f"Item ID '{item_id}' is not in your cart.")
+        return False
+
+    remaining = cart[item_id] - qty_to_subtract
+    if remaining <= 0:
+        removed_name = menu[item_id]["name"]
+        del cart[item_id]
+        print(f"Removed '{removed_name}' from your cart.")
+    else:
+        cart[item_id] = remaining
+        print(f"Subtracted {qty_to_subtract}x {menu[item_id]['name']}. Remaining: {remaining}")
+
+    return True
+
+
+def calculate_subtotal(menu, cart):
+    """
+    Iterates over cart.items() to get item_id and qty,
+    cross-referencing menu[item_id]['price'].
+    """
+    subtotal = 0.0
+    for item_id, qty in cart.items():
+        price = menu[item_id]["price"]
+        subtotal += price * qty
+    return subtotal
+
+
+def display_cart_and_subtotal(menu, cart, tax_rate=0.08):
+    """Outputs the itemized cart, subtotal, tax, and final total."""
+    print("\n" + "=" * 50)
+    print("               YOUR CART & RECEIPT")
+    print("=" * 50)
+
+    if not cart:
+        print("Your cart is empty.")
+        print("=" * 50 + "\n")
+        return 0.0
+
+    for item_id, qty in cart.items():
+        name = menu[item_id]["name"]
+        price = menu[item_id]["price"]
+        line_cost = price * qty
+        print(f"  {qty}x {name:<22} (${price:.2f} ea)  ${line_cost:>6.2f}")
+
+    subtotal = calculate_subtotal(menu, cart)
+    tax = subtotal * tax_rate
+    total = subtotal + tax
+
+    print("-" * 50)
+    print(f"  {'Subtotal:':<37} ${subtotal:>6.2f}")
+    print(f"  {'Tax (8%):':<37} ${tax:>6.2f}")
+    print(f"  {'Total:':<37} ${total:>6.2f}")
+    print("=" * 50 + "\n")
+    return total
