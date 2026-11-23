@@ -1,0 +1,47 @@
+# =====================================================================
+# 2. CREATIVE FEATURE: POPULAR MEAL ADDITION PROMPT
+# =====================================================================
+def offer_popular_addition(menu, cart):
+    """
+    Runs right before outputting the final cart/subtotal.
+    Checks the categories currently in the cart and suggests a popular
+    in-stock addition (e.g., offering a drink if the user ordered a pizza/entree
+    without a drink).
+    """
+    if not cart:
+        return
+
+    categories_in_cart = {menu[item_id]["category"] for item_id in cart}
+
+    if ("Entree" in categories_in_cart or "Specials" in categories_in_cart) and "Drinks" not in categories_in_cart:
+        target_category = "Drinks"
+        message = "Would you like to add a popular drink to go with your meal?"
+    elif "Entree" in categories_in_cart and "Sides" not in categories_in_cart:
+        target_category = "Sides"
+        message = "Would you like to add a popular side to complete your meal?"
+    elif "Desserts" not in categories_in_cart:
+        target_category = "Desserts"
+        message = "Would you like to add a popular dessert before checking out?"
+    else:
+        return
+
+    suggestions = {
+        item_id: info
+        for item_id, info in menu.items()
+        if info["category"] == target_category and info["in_stock"]
+    }
+
+    if not suggestions:
+        return
+
+    print("\n" + "-" * 50)
+    print(f"POPULAR ADDITION: {message}")
+    print("-" * 50)
+    for item_id, info in suggestions.items():
+        print(f"  [{item_id}] {info['name']:<22} - ${info['price']:.2f}")
+
+    choice = input("\nEnter Item ID to add (or press Enter to skip): ").strip().upper()
+    if choice in suggestions:
+        add_to_cart(menu, cart, choice, qty=1)
+    else:
+        print("Skipping addition...")
